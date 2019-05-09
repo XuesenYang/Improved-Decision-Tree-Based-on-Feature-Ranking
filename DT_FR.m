@@ -1,6 +1,9 @@
 function err=DT_FR(x)
-% *************************
-% …………………………………input………………………………………
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% x：        Optimization parameters.
+% x(1):      Parameter of Probability Transfer Matrix.(The correlation coefficient below this value will be zero.)  
+% err:       classification error rate.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % runtimes=30;
 ErrorRate=zeros(1,runtimes);
     load('sonar.mat')
