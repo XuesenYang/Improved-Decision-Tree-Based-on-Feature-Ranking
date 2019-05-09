@@ -10,27 +10,28 @@ function test_targets = C4_5(train_features, train_targets, test_features,prunin
 % end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%training_features£ºÑµÁ·Ñù±¾µÄÌØÕ÷  
-%training_targets£ºÑµÁ·Ñù±¾ËùÊôÀà±ğ  
-%test_features£º²âÊÔÑù±¾µÄÌØÕ÷   
-%pruning£º¼ôÖ¦ÏµÊı  
-%thres_disc:ÀëÉ¢ÌØÕ÷ãĞÖµ£¬>thres_discÈÏ¶¨Îª¸ÃÌØÕ÷È¡Öµ·¶Î§Á¬Ğø 
+%training_featuresï¼šfeatures of training samples  
+%training_targetsï¼š label of training samples  
+%test_featuresï¼š    features of test samples   
+%pruningï¼š          Pruning coefficient  
+%thres_disc:        Discrete feature thresholdï¼Œ  >thres_disc   means feature values is continuous.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    [fea, num]     = size(train_features); %numÊÇÑµÁ·Ñù±¾Êı£¬feaÊÇÌØÕ÷ÊıÄ¿  
-    pruning    = pruning*num/100;  % ÓÃÓÚ¼ôÖ¦ 
+    [fea, num]     = size(train_features); % num: size of training samplesï¼Œ  fea:total number of features  
+    pruning    = pruning*num/100;  % Pruning  
         
-    %ÅĞ¶ÏÄ³Ò»Î¬µÄÌØÕ÷ÊÇÀëÉ¢È¡Öµ»¹ÊÇÁ¬ĞøÈ¡Öµ£¬0´ú±íÊÇÁ¬ĞøÌØÕ÷
+    % Judging whether a feature of a dimension is discrete or continuous, 0 represents continuous feature
     discrete_dim =discreteOrContinue(train_features,thres_disc); 
         
-    % µİ¹éµØ¹¹ÔìÊ÷  
-    %disp('Building tree')    
+    % Constructing Trees Recursively  
+    % disp('Building tree')    
     tree= build_tree(train_features, train_targets,discrete_dim,0,pruning,Ranking);    
     save tree.mat tree;  
-    %¼ÓÈë±¯¹Û¼ôÖ¦µÄ²Ù×÷  
-    %ÔÚÍêÈ«Éú³¤µÄ¾ö²ßÊ÷µÄ»ù´¡ÉÏ£¬¶ÔÉú³¤ºó·ÖÀàĞ§¹û²»¼ÑµÄ×ÓÊ÷½øĞĞĞŞ¼ô£¬¼õĞ¡¾ö²ßÊ÷µÄ¸´ÔÓ¶È£¬½µµÍ¹ıÄâºÏµÄÓ°Ïì  
-    %treeplot(tree);  
+    % Add pessimistic pruning  
+    % On the basis of fully growing decision tree, pruning sub-trees with poor classification effect 
+    % after growth can reduce the complexity of decision tree and the influence of over-fitting.  
+    % treeplot(tree);  
       
-    %Ñù±¾Ô¤²â    
-    %disp('Classify test samples using the tree')    
+    % Predictive Test dataset   
+    % disp('Classify test samples using the tree')    
     test_targets= predict(tree,test_features, 1:size(test_features,2), discrete_dim);    
