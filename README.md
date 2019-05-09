@@ -5,7 +5,7 @@ An improved decision tree classifier, in which the feature ranking threshold is 
 (1)  main.m is the major operating documents. Bayesian parameter optimization is added.   
 (2)  build_tree.m is used to constructed decision tree.         
 (3)  DT_FR.m combine Decision Tree and Characteristic Sorting.         
-(4)  FeatureRank.m Generate feature ranking.        
+(4)  FeatureRank.m generates feature ranking.        
 (5)  predict.m  is used to predict data.    
 (6)  discreteOrContinue.m is used to judge whether features are discrete or not.       
 (7)  C4_5.m  represents Classification Process of Decision Tree.     
