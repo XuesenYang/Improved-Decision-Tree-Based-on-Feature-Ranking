@@ -1,36 +1,36 @@
 function targets = predict(tree,test_features, indices, discrete_dim)       
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%µ÷ÓÃC4.5¾ö²ßÊ÷Ëã·¨¶Ô²âÊÔÑù±¾½øĞĞÔ¤²â
-%tree£ºC4.5Ëã·¨Ëù½¨Á¢µÄ¾ö²ßÊ÷ 
-%test_features£º²âÊÔÑù±¾µÄÌØÕ÷ 
-%indices£ºË÷Òı 
-%discrete:¸÷¸öÎ¬¶ÈµÄÌØÕ÷ÊÇ·ñÊÇÁ¬ĞøÈ¡Öµ£¬0Ö¸µÄÊÇÁ¬ĞøÈ¡Öµ
+% Calling C4.5 Decision Tree to Predict Test Samples
+% treeï¼š              Decision Tree Established by C4.5 Algorithms 
+% test_featuresï¼š     features of test samples 
+% indicesï¼š           Indexes
+%discrete:            Whether the features of each dimension are continuous values or not, 0 means continuous values.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 targets = zeros(1, size(test_features,2)); 
         
 if (tree.feature_tosplit == 0)  
-    targets(indices) = tree.child;  %µÃµ½Ñù±¾¶ÔÓ¦µÄ±êÇ©ÊÇtree.child  
+    targets(indices) = tree.child;  % The label corresponding to the sample is tree.child  
     return    
 end    
         
-feature_tosplit = tree.feature_tosplit;  %µÃµ½·ÖÁÑÌØÕ÷  
-dims= 1:size(test_features,1);  %µÃµ½ÌØÕ÷Ë÷Òı  
+feature_tosplit = tree.feature_tosplit;  % Obtain the splitting characteristics 
+dims= 1:size(test_features,1);  % Get the feature index  
         
-% ¸ù¾İµÃµ½µÄ¾ö²ßÊ÷¶Ô²âÊÔÑù±¾½øĞĞ·ÖÀà  
-if (discrete_dim(feature_tosplit) == 0) %Èç¹ûµ±Ç°·ÖÁÑÌØÕ÷ÊÇ¸öÁ¬ĞøÌØÕ÷ 
+% Classification of test samples based on the decision tree  
+if (discrete_dim(feature_tosplit) == 0) %If the current splitting feature is a continuous feature 
     in= indices(find(test_features(feature_tosplit, indices)<= tree.location));  
     targets= targets + predict( tree.child(1),test_features(dims, :), in,discrete_dim(dims)); 
     in= indices(find(test_features(feature_tosplit, indices)>tree.location)); 
     targets= targets + predict(tree.child(2),test_features(dims, :),in,discrete_dim(dims));   
-else  %Èç¹ûµ±Ç°·ÖÁÑÌØÕ÷ÊÇ¸öÀëÉ¢ÌØÕ÷  
-    Uf= unique(test_features(feature_tosplit,:)); %µÃµ½Õâ¸öÑù±¾¼¯ÖĞÕâ¸öÌØÕ÷µÄÎŞÖØ¸´ÌØÕ÷Öµ  
-    for i = 1:length(Uf)  %±éÀúÃ¿¸öÌØÕ÷Öµ    
-        if any(Uf(i) == tree.value)  %tree.NfÎªÊ÷µÄ·ÖÀàÌØÕ÷ÏòÁ¿ µ±Ç°ËùÓĞÑù±¾µÄÕâ¸öÌØÕ÷µÄÌØÕ÷Öµ  
-            in= indices(find(test_features(feature_tosplit, indices) == Uf(i)));  %ÕÒµ½µ±Ç°²âÊÔÑù±¾ÖĞÕâ¸öÌØÕ÷µÄÌØÕ÷Öµ==·ÖÁÑÖµµÄÑù±¾Ë÷Òı  
-            targets = targets + predict(tree.child(find(Uf(i)==tree.value)),test_features(dims, :),in,discrete_dim(dims));%¶ÔÕâ²¿·ÖÑù±¾ÔÙ·Ö²æ   
+else  %If the current splitting feature is a discrete feature  
+    Uf= unique(test_features(feature_tosplit,:)); %The non-repetitive eigenvalues of this feature in the sample set are obtained.  
+    for i = 1:length(Uf)  %Traversing through each eigenvalue 
+        if any(Uf(i) == tree.value)  %Tree. Nf is the classified feature vector of the tree. The eigenvalues of this feature of all current samples  
+            in= indices(find(test_features(feature_tosplit, indices) == Uf(i)));  %Find the sample index with the eigenvalue== split value of this feature in the current test sample  
+            targets = targets + predict(tree.child(find(Uf(i)==tree.value)),test_features(dims, :),in,discrete_dim(dims));% Bifurcation of these sample 
         end    
     end    
 end 
