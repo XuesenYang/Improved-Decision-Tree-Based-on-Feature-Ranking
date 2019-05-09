@@ -15,6 +15,6 @@ An improved decision tree classifier, in which the feature ranking threshold is 
 Editor:Xuesen Yang              
 Institution: Shenzhen University             
 E-mail:1348825332@qq.com            
-Edit date:2019-3-28   
-Do my own thing steadfastly~
+Edit date:2019-5-9  
+crush crush crush ~
 
