@@ -1,5 +1,7 @@
 function err=DT_FR(x)
-runtimes=30;
+% *************************
+% …………………………………input………………………………………
+% runtimes=30;
 ErrorRate=zeros(1,runtimes);
     load('sonar.mat')
     X=data(:,1:end-1);
