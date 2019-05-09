@@ -3,7 +3,7 @@ function err=DT_FR(x)
 % x：        Optimization parameters.
 % x(1):      Parameter of Probability Transfer Matrix.(The correlation coefficient below this value will be zero.)
 % x(2):      Pruning coefficient
-% x(3):      Pruning coefficient
+% x(3):      Discrete feature threshold
 % err:       Classification error rate.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % runtimes=30;
