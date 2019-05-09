@@ -1,11 +1,12 @@
 function tree = build_tree(train_features, train_targets, discrete_dim, layer,pruning,Ranks)    
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%µ÷ÓÃC4.5¾ö²ßÊ÷Ëã·¨½¨Á¢¾ö²ßÊ÷
-%training_features£ºÑµÁ·Ñù±¾µÄÌØÕ÷  
-%training_targets£ºÑµÁ·Ñù±¾ËùÊôÀà±ğ  
-%discrete_dim£º¸÷¸öÎ¬¶ÈµÄÌØÕ÷ÊÇ·ñÊÇÁ¬ĞøÌØÕ÷£¬0Ö¸µÄÊÇÁ¬ĞøÌØÕ÷  
-%layer:½ÚµãËùÊôÊ÷µÄ²ãÊı
+% Calling C4.5 Decision Tree Algorithms to Establish Decision Tree
+% training_featuresï¼š   features of training samples  
+% training_targetsï¼š    label of training samples  
+% discrete_dimï¼š        Whether the features of each dimension are continuous features or not, 0 means continuous features  
+% layer:                Number of layers of trees to which nodes belong
+% tree:                 Structure of Decision Tree 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
 % if nargin>5
@@ -17,14 +18,14 @@ function tree = build_tree(train_features, train_targets, discrete_dim, layer,pr
 [fea, L]= size(train_features);  
 ale= unique(train_targets);  
 tree.feature_tosplit= 0;  
-tree.location=inf;  %³õÊ¼»¯·ÖÁÑÎ»ÖÃÊÇinf  
+tree.location=inf;  % The initialization splitting location is inf  
         
 if isempty(train_features)   
     return    
 end    
            
-if ((pruning > L) || (L == 1) ||(length(ale) == 1)) %Èç¹ûÊ£ÓàÑµÁ·Ñù±¾Ì«Ğ¡(Ğ¡ÓÚpruning)£¬»òÖ»Ê£Ò»¸ö£¬»òÖ»Ê£Ò»Àà±êÇ©£¬ÍË³ö    
-    his= hist(train_targets, length(ale));  %Í³¼ÆÑù±¾µÄ±êÇ©£¬·Ö±ğÊôÓÚÃ¿¸ö±êÇ©µÄÊıÄ¿  
+if ((pruning > L) || (L == 1) ||(length(ale) == 1)) %If the remaining training sample is too small (less than pruning), or only one, or only one label, exit.    
+    his= hist(train_targets, length(ale));  %Statistical sample labels, which belong to the number of labels  
     [~, largest]= max(his); 
     tree.value= [];    
     tree.location  = [];    
@@ -32,30 +33,30 @@ if ((pruning > L) || (L == 1) ||(length(ale) == 1)) %Èç¹ûÊ£ÓàÑµÁ·Ñù±¾Ì«Ğ¡(Ğ¡ÓÚpr
     return    
 end    
          
-for i = 1:length(ale) %±éÀúÅĞ±ğ±êÇ©µÄÊıÄ¿   
+for i = 1:length(ale) % Number of traversal discriminant Tags   
     Pnode(i) = length(find(train_targets == ale(i))) / L; 
 end   
 
-%¼ÆËãµ±Ç°½ÚµãµÄĞÅÏ¢ìØ 
+% Compute Information Entropy of Current Node
 Inode = -sum(Pnode.*log2(Pnode));    
         
-el= zeros(1, fea);  %¼ÇÂ¼Ã¿¸öÌØÕ÷µÄĞÅÏ¢ÔöÒæÂÊ  
+el= zeros(1, fea);  % Record each feature information gain ratio  
 location= ones(1, fea)*inf;
    
-for i = 1:fea %±éÀúÃ¿¸öÌØÕ÷    
+for i = 1:fea % Traversing through each feature    
     data= train_features(i,:); 
     pe= unique(data);    
     nu= length(pe);   
-    if (discrete_dim(i)) %ÀëÉ¢ÌØÕ÷   
+    if (discrete_dim(i)) % If Discrete characteristics  
         el(i) = Ranks(i); %feature ranking rate   
-    else   %Á¬ĞøÌØÕ÷
+    else   % Or Continuous feature
         node= zeros(length(ale), 2);
         [sorted_data, indices] = sort(data);
         sorted_targets = train_targets(indices);
-        %¼ÆËã·ÖÁÑĞÅÏ¢¶ÈÁ¿  
+        % Computate Split Information Metrics 
          I = zeros(1,nu);  
          spl= zeros(1, nu);  
-         for j = 1:nu-1  %ÌØÕ÷iÓĞNbins¸öÁ¬ĞøÖµ£¬Éè¶¨Nbins-1¸ö¿ÉÄÜµÄ·Ö¸îµã£¬¶ÔÃ¿¸ö·Ö¸îµã¼ÆËãĞÅÏ¢ÔöÒæÂÊ
+         for j = 1:nu-1  % The feature i has Nbins continuous values, set Nbins-1 possible segmentation points, and calculate the information gain rate for each segmentation point.
              node(:, 1) = hist(sorted_targets(find(sorted_data <= pe(j))) , ale);  
              node(:, 2) = hist(sorted_targets(find(sorted_data > pe(j))) , ale);   
              Ps= sum(node)/L; 
@@ -63,29 +64,29 @@ for i = 1:fea %±éÀúÃ¿¸öÌØÕ÷
              rocle= sum(node);    
              P1= repmat(rocle, length(ale), 1); 
              P1= P1 + eps*(P1==0);    
-             info= sum(-node./P1.*log(eps+node./P1)/log(2)); %ĞÅÏ¢ÔöÒæ
+             info= sum(-node./P1.*log(eps+node./P1)/log(2)); %information gain
              I(j)= Inode - sum(info.*Ps);   
-             spl(j) =I(j)/(-sum(Ps.*log(eps+Ps)/log(2)));  %µÚj¸ö·Ö¸îµãµÄĞÅÏ¢ÔöÒæÂÊ
+             spl(j) =I(j)/(-sum(Ps.*log(eps+Ps)/log(2)));  % Information Gain Rate of the j Segmentation Point
          end  
   
-       [~, s] = max(I);  %ÇóËùÓĞ·Ö¸îµãµÄ×î´óĞÅÏ¢ÔöÒæÂÊ
+       [~, s] = max(I);  % Find the Maximum Information Gain Rate of All Segmentation Points
        el(i) = Ranks(i);
-       location(i) = pe(s);  %¶ÔÓ¦ÌØÕ÷iµÄ»®·ÖÎ»ÖÃ¾ÍÊÇÄÜÊ¹ĞÅÏ¢ÔöÒæ×î´óµÄ»®·ÖÖµ
+       location(i) = pe(s);  % The partition position of corresponding feature i is the partition value which can maximize the information gain.
    end    
 end    
         
-%ÕÒµ½µ±Ç°Òª×÷Îª·ÖÁÑÌØÕ÷µÄÌØÕ÷  
+% Find the features that are currently used as splitting features  
 [~, feature_tosplit]= max(el); 
-dims=1:fea;  %ÌØÕ÷ÊıÄ¿ 
+dims=1:fea;   
 Ranks(feature_tosplit)=0;
-tree.feature_tosplit= feature_tosplit;  %¼ÇÎªÊ÷µÄ·ÖÁÑÌØÕ÷  
+tree.feature_tosplit= feature_tosplit;  % Record feature as split of the tree  
         
 value= unique(train_features(feature_tosplit,:)); 
 nu= length(value);
-tree.value = value;  %¼ÇÎªÊ÷µÄ·ÖÀàÌØÕ÷ÏòÁ¿ µ±Ç°ËùÓĞÑù±¾µÄÕâ¸öÌØÕ÷µÄÌØÕ÷Öµ  
-tree.location = location(feature_tosplit);  %Ê÷µÄ·ÖÁÑÎ»ÖÃ
+tree.value = value;  %  
+tree.location = location(feature_tosplit);  %
            
-if (nu == 1)  %ÎŞÖØ¸´µÄÌØÕ÷ÖµµÄÊıÄ¿==1£¬¼´Õâ¸öÌØÕ÷Ö»ÓĞÕâÒ»¸öÌØÕ÷Öµ£¬¾Í²»ÄÜ½øĞĞ·ÖÁÑ  
+if (nu == 1)   
     his= hist(train_targets, length(ale));
     [~, largest]= max(his); 
     tree.value= []; 
@@ -94,25 +95,23 @@ if (nu == 1)  %ÎŞÖØ¸´µÄÌØÕ÷ÖµµÄÊıÄ¿==1£¬¼´Õâ¸öÌØÕ÷Ö»ÓĞÕâÒ»¸öÌØÕ÷Öµ£¬¾Í²»ÄÜ½øĞĞ·Ö
     return    
 end    
         
-if (discrete_dim(feature_tosplit))  %Èç¹ûµ±Ç°Ñ¡ÔñµÄÕâ¸ö×÷Îª·ÖÁÑÌØÕ÷µÄÌØÕ÷ÊÇ¸öÀëÉ¢ÌØÕ÷   
-    for i = 1:nu   %±éÀúÕâ¸öÌØÕ÷ÏÂÎŞÖØ¸´µÄÌØÕ÷ÖµµÄÊıÄ¿  
+if (discrete_dim(feature_tosplit))    
+    for i = 1:nu     
         indices= find(train_features(feature_tosplit, :) == value(i));
-        tree.child(i)= build_tree(train_features(dims, indices), train_targets(indices), discrete_dim(dims), layer, pruning,Ranks);%µİ¹é  
-       
-        %ÀëÉ¢ÌØÕ÷£¬·Ö²æ³ÉNbins¸ö£¬·Ö±ğÕë¶ÔÃ¿¸öÌØÕ÷ÖµÀïµÄÑù±¾£¬½øĞĞÔÙ·Ö²æ  
+        tree.child(i)= build_tree(train_features(dims, indices), train_targets(indices), discrete_dim(dims), layer, pruning,Ranks);  
     end    
 else
     
-%Èç¹ûµ±Ç°Ñ¡ÔñµÄÕâ¸ö×÷Îª·ÖÁÑÌØÕ÷µÄÌØÕ÷ÊÇ¸öÁ¬ĞøÌØÕ÷
-indices1= find(train_features(feature_tosplit,:) <= location(feature_tosplit));  %ÕÒµ½ÌØÕ÷Öµ<=·ÖÁÑÖµµÄÑù±¾µÄË÷ÒıÃÇ  
+% If the feature currently selected as splitting feature is a continuous feature
+indices1= find(train_features(feature_tosplit,:) <= location(feature_tosplit));  % Indicators for finding samples with eigenvalues <= split values  
 indices2= find(train_features(feature_tosplit,:) > location(feature_tosplit));
-  if ~(isempty(indices1) || isempty(indices2))  %Èç¹û<=·ÖÁÑÖµ >·ÖÁÑÖµµÄÑù±¾ÊıÄ¿¶¼²»µÈÓÚ0    
+  if ~(isempty(indices1) || isempty(indices2))  % If the number of samples with <= splitting value > splitting value is not equal to 0   
       tree.child(1)= build_tree(train_features(dims, indices1), train_targets(indices1), discrete_dim(dims),layer+1, pruning,Ranks);
       tree.child(2)= build_tree(train_features(dims, indices2), train_targets(indices2), discrete_dim(dims),layer+1, pruning,Ranks);   
   else    
-      his= hist(train_targets, length(ale));  %Í³¼Æµ±Ç°ËùÓĞÑù±¾µÄ±êÇ©£¬·Ö±ğÊôÓÚÃ¿¸ö±êÇ©µÄÊıÄ¿ 
+      his= hist(train_targets, length(ale));  % The number of labels in each label is counted for each sample. 
       [~, largest]= max(his);
       tree.child= ale(largest);   
-      tree.feature_tosplit= 0;  %Ê÷µÄ·ÖÁÑÌØÕ÷¼ÇÎª0  
+      tree.feature_tosplit= 0;   
   end    
 end 
